@@ -1,8 +1,7 @@
 CREATE TABLE characters
 (
   id         SERIAL PRIMARY KEY,
-  first_name VARCHAR(50),
-  last_name  VARCHAR(50),
+  name VARCHAR(50),
   band_id    INTEGER,
   band_color CHAR(6),
   instrument VARCHAR(20)
@@ -30,10 +29,10 @@ INSERT INTO bands (name, color, studio)
 VALUES ('MyGO!!!!!', '3388BB', 'RiNG');
 
 INSERT INTO
-  characters (first_name, last_name, band_id, band_color, instrument)
+  characters (name, band_id, band_color, instrument)
 VALUES
-  ('Anon', 'Chihaya', 1, '3388BB', 'Guitar'),
-  ('Soyo', 'Nagasaki', 1, '3388BB', 'Bass'),
-  ('Taki', 'Shiina', 1, '3388BB', 'Drums'),
-  ('Tomori', 'Takamatsu', 1, '3388BB', 'Vocals'),
-  ('Raana', 'Kaname', 1, '3388BB', 'Guitar');
+  ('Anon', 1, '3388BB', 'Vocal&Guitar'),
+  ('Soyo', 1, '3388BB', 'Bass'),
+  ('Taki', 1, '3388BB', 'Drum'),
+  ('Tomori', 1, '3388BB', 'Vocal'),
+  ('Raana', 1, '3388BB', 'Guitar');

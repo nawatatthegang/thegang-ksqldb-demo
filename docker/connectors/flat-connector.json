@@ -21,7 +21,7 @@
     "database.port": "5432",
     "database.user": "postgres",
     "database.password": "postgres",
-    "database.dbname": "bangdreamdb",
+    "database.dbname": "girls_band_anime",
     "database.history.kafka.bootstrap.servers": "http://kafka:9092",
     "publication.name": "flat_demo_publication",
     "slot.name": "flat_demo_slot",
