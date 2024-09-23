@@ -1,5 +1,5 @@
 {
-  "name": "demo-connector",
+  "name": "full-demo-connector",
   "config": {
     "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
     "tasks.max": "1",
@@ -23,12 +23,10 @@
     "database.password": "postgres",
     "database.dbname": "bangdreamdb",
     "database.history.kafka.bootstrap.servers": "http://kafka:9092",
-    "publication.name": "demo_publication",
-    "slot.name": "demo_slot",
+    "publication.name": "full_demo_publication",
+    "slot.name": "full_demo_slot",
     "database.server.name": "bang-dream-db",
-    "topic.prefix": "dev.demo.sourcepg",
-    "table.include.list": "public.characters,public.bands,public.concerts",
-    "transforms": "unwrap",
-    "transforms.unwrap.type": "io.debezium.transforms.ExtractNewRecordState"
+    "topic.prefix": "dev.demo.full.sourcepg",
+    "table.include.list": "public.characters,public.bands,public.concerts"
   }
 }
