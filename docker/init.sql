@@ -1,7 +1,7 @@
 CREATE TABLE characters
 (
   id         SERIAL PRIMARY KEY,
-  name VARCHAR(50),
+  name       VARCHAR(50),
   band_id    INTEGER,
   band_color CHAR(6),
   instrument VARCHAR(20)
@@ -17,12 +17,13 @@ CREATE TABLE bands
 
 CREATE TABLE concerts
 (
-  id          SERIAL PRIMARY KEY,
-  name        VARCHAR(255),
-  venue       VARCHAR(255),
-  start_time  timestamptz,
-  description VARCHAR(255),
-  band_id     INTEGER
+  id               SERIAL PRIMARY KEY,
+  name             VARCHAR(255),
+  venue            VARCHAR(255),
+  event_date       DATE,
+  band_id          INTEGER,
+  attended         BOOLEAN,
+  score_out_of_ten NUMERIC(2)
 );
 
 INSERT INTO bands (name, color, studio)
@@ -36,3 +37,6 @@ VALUES
   ('Taki', 1, '3388BB', 'Drum'),
   ('Tomori', 1, '3388BB', 'Vocal'),
   ('Raana', 1, '3388BB', 'Guitar');
+
+
+CREATE DATABASE sink_db;

@@ -7,8 +7,8 @@ if __name__ == '__main__':
     engine = create_engine(SOURCE_POSTGRES_URI)
     with engine.connect() as conn:
         conn.execute(text("""
-            INSERT INTO concerts (name, venue, start_time, band_id)
-            VALUES ('MyGO!!!!! 1st LIVE: We''re Screaming Here', 'Shibuya duo MUSIC EXCHANGE', '2022-07-03 18:00:00+09'::timestamptz, 1)
+            INSERT INTO concerts (name, venue, event_date, band_id, attended, score_out_of_ten)
+            VALUES ('MyGO!!!!! 1st LIVE: We''re Screaming Here', 'Shibuya duo MUSIC EXCHANGE', '2022-07-03'::DATE, 1, FALSE, 10.0::NUMERIC(2))
         """))
         conn.commit()
         print("MyGO!!!!! 1st LIVE added")

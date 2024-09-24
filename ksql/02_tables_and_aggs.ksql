@@ -1,0 +1,57 @@
+CREATE TABLE dev_flat_characters_tbl
+WITH (
+    kafka_topic='dev.demo.table.characters',
+    key_format='json',
+    value_format='json'
+) AS
+SELECT
+    id,
+    latest_by_offset(name) as name,
+    latest_by_offset(band_id) as band_id,
+    latest_by_offset(band_color) as band_color,
+    latest_by_offset(instrument) as instrument
+FROM dev_flat_characters
+GROUP BY id;
+
+CREATE TABLE dev_flat_characters_tbl_to_sink_v2
+WITH (
+    kafka_topic='dev.demo.table.characters.sink_v2',
+    key_format='json',
+    value_format='json'
+) AS
+SELECT
+    id,
+    struct(
+        `type` := 'struct'
+        , `optional` := false
+        , `version` := 1
+        , `fields` := array[
+            struct(
+                `field` := 'name'
+                , `type` := 'string'
+                , `optional` := true
+            ),
+            struct(
+                `field` := 'band_id'
+                , `type` := 'int64'
+                , `optional` := true
+            ),
+            struct(
+                `field` := 'band_color'
+                , `type` := 'string'
+                , `optional` := true
+            ),
+            struct(
+                `field` := 'instrument'
+                , `type` := 'string'
+                , `optional` := true
+            )]
+    ) as `schema`
+    , struct(
+        `name` := latest_by_offset(name)
+        , `band_id` := latest_by_offset(band_id)
+        , `band_color` := latest_by_offset(band_color)
+        , `instrument` := latest_by_offset(instrument)
+    ) as `payload`
+FROM dev_flat_characters
+GROUP BY id;
