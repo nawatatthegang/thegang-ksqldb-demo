@@ -23,6 +23,20 @@ CREATE STREAM dev_flat_bands (
     value_format='json'
 );
 
+CREATE STREAM dev_flat_concerts (
+    id INTEGER,
+    name STRING,
+    venue STRING,
+    event_date INTEGER,
+    band_id INTEGER,
+    attended BOOLEAN,
+    score_out_of_ten DOUBLE
+) with (
+    kafka_topic='dev.demo.flat.sourcepg.public.concerts',
+    key_format='json',
+    value_format='json'
+);
+
 CREATE STREAM dev_full_concerts (
     before STRUCT<
         id INTEGER,

@@ -45,6 +45,20 @@ services:
     networks:
       all-seeing:
 
+  schema-registry:
+    image: confluentinc/cp-schema-registry:7.3.0
+    hostname: schema-registry
+    container_name: schema-registry
+    depends_on:
+      - kafka
+    ports:
+      - "8081:8081"
+    environment:
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: PLAINTEXT://kafka:9092
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+    networks:
+      all-seeing:
+
   kafka-connect:
     build:
       dockerfile: KafkaConnect.Dockerfile
@@ -70,6 +84,8 @@ services:
       CONNECT_REST_PORT: 8083
       CONNECT_TOPIC_CREATION_ENABLE: true
       CONNECT_AUTO_CREATE_TOPIC_ENABLE: true
+      CONNECT_KEY_CONVERTER_SCHEMA_REGISTRY_URL: http://schema-registry:8081
+      CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: http://schema-registry:8081
     networks:
       all-seeing:
 
@@ -96,6 +112,7 @@ services:
       KSQL_LISTENERS: http://0.0.0.0:8088
       KSQL_KSQL_LOGGING_PROCESSING_STREAM_AUTO_CREATE: "true"
       KSQL_KSQL_LOGGING_PROCESSING_TOPIC_AUTO_CREATE: "true"
+      KSQL_KSQL_SCHEMA_REGISTRY_URL: http://schema-registry:8081
     networks:
       all-seeing:
 
