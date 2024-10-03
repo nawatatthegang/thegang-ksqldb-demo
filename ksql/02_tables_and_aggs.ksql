@@ -13,6 +13,21 @@ SELECT
 FROM dev_flat_characters
 GROUP BY id;
 
+CREATE TABLE out_enriched_characters
+WITH (
+    kafka_topic='out.tbl.characters',
+    key_format='avro',
+    value_format='avro'
+) AS
+SELECT
+    id,
+    latest_by_offset(name) as name,
+    latest_by_offset(band_id) as band_id,
+    latest_by_offset(band_color) as band_color,
+    latest_by_offset(instrument) as instrument
+FROM dev_flat_characters
+GROUP BY id;
+
 CREATE TABLE dev_flat_characters_tbl_to_sink_v2
 WITH (
     kafka_topic='dev.demo.table.characters.sink_v2',
@@ -53,20 +68,5 @@ SELECT
         , `band_color` := latest_by_offset(band_color)
         , `instrument` := latest_by_offset(instrument)
     ) as `payload`
-FROM dev_flat_characters
-GROUP BY id;
-
-CREATE TABLE dev_flat_characters_tbl_avro
-WITH (
-    kafka_topic='dev.demo.table.characters.avro',
-    key_format='avro',
-    value_format='avro'
-) AS
-SELECT
-    id,
-    latest_by_offset(name) as name,
-    latest_by_offset(band_id) as band_id,
-    latest_by_offset(band_color) as band_color,
-    latest_by_offset(instrument) as instrument
 FROM dev_flat_characters
 GROUP BY id;

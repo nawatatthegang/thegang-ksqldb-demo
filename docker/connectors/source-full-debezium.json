@@ -1,5 +1,5 @@
 {
-  "name": "full-demo-connector",
+  "name": "source-full-debezium",
   "config": {
     "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
     "tasks.max": "1",

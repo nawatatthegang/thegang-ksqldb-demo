@@ -1,4 +1,5 @@
 services:
+  # data generator and receiver
   postgres:
     image: postgres:16
     container_name: database
@@ -17,7 +18,8 @@ services:
     networks:
       all-seeing:
 
-  zookeeper:
+  # source services
+  zookeeper-src:
     image: confluentinc/cp-zookeeper:7.3.0
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
@@ -25,17 +27,17 @@ services:
     networks:
       all-seeing:
 
-  kafka:
+  kafka-src:
     image: confluentinc/cp-kafka:7.3.0
     depends_on:
-      - zookeeper
+      - zookeeper-src
     ports:
       - "9092:9092"
       - "29092:29092"
     environment:
       KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper-src:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-src:9092,PLAINTEXT_HOST://localhost:29092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
@@ -45,38 +47,38 @@ services:
     networks:
       all-seeing:
 
-  schema-registry:
+  schema-registry-src:
     image: confluentinc/cp-schema-registry:7.3.0
-    hostname: schema-registry
-    container_name: schema-registry
+    hostname: schema-registry-src
+    container_name: schema-registry-src
     depends_on:
-      - kafka
+      - kafka-src
     ports:
       - "8081:8081"
     environment:
-      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: PLAINTEXT://kafka:9092
-      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: PLAINTEXT://kafka-src:9092
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry-src
     networks:
       all-seeing:
 
-  kafka-connect:
+  kafka-connect-src:
     build:
       dockerfile: KafkaConnect.Dockerfile
       context: .
     depends_on:
-      - kafka
+      - kafka-src
     ports:
       - "8083:8083"
     environment:
-      CONNECT_BOOTSTRAP_SERVERS: kafka:9092
-      CONNECT_REST_ADVERTISED_HOST_NAME: kafka-connect
-      CONNECT_GROUP_ID: connect-demo
+      CONNECT_BOOTSTRAP_SERVERS: kafka-src:9092
+      CONNECT_REST_ADVERTISED_HOST_NAME: kafka-connect-src
+      CONNECT_GROUP_ID: src-connect-demo
       CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 1
       CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 1
       CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 1
-      CONNECT_CONFIG_STORAGE_TOPIC: demo.connect.configs
-      CONNECT_OFFSET_STORAGE_TOPIC: demo.connect.offsets
-      CONNECT_STATUS_STORAGE_TOPIC: demo.connect.status
+      CONNECT_CONFIG_STORAGE_TOPIC: src.connect.configs
+      CONNECT_OFFSET_STORAGE_TOPIC: src.connect.offsets
+      CONNECT_STATUS_STORAGE_TOPIC: src.connect.status
       CONNECT_KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
       CONNECT_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
       CONNECT_INTERNAL_KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
@@ -84,8 +86,121 @@ services:
       CONNECT_REST_PORT: 8083
       CONNECT_TOPIC_CREATION_ENABLE: true
       CONNECT_AUTO_CREATE_TOPIC_ENABLE: true
-      CONNECT_KEY_CONVERTER_SCHEMA_REGISTRY_URL: http://schema-registry:8081
-      CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: http://schema-registry:8081
+      CONNECT_KEY_CONVERTER_SCHEMA_REGISTRY_URL: http://schema-registry-src:8081
+      CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: http://schema-registry-src:8081
+    networks:
+      all-seeing:
+
+  ksqldb-server-src:
+    image: confluentinc/cp-ksqldb-server:latest
+    depends_on:
+      - zookeeper-src
+      - kafka-src
+    ports:
+      - "8088:8088"
+    environment:
+      KSQL_BOOTSTRAP_SERVERS: http://kafka-src:9092
+      KSQL_LISTENERS: http://0.0.0.0:8088
+      KSQL_KSQL_LOGGING_PROCESSING_STREAM_AUTO_CREATE: "true"
+      KSQL_KSQL_LOGGING_PROCESSING_TOPIC_AUTO_CREATE: "true"
+      KSQL_KSQL_SCHEMA_REGISTRY_URL: http://schema-registry-src:8081
+    networks:
+      all-seeing:
+  # sink services
+  zookeeper-sink:
+    image: confluentinc/cp-zookeeper:7.3.0
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      all-seeing:
+
+  kafka-sink:
+    image: confluentinc/cp-kafka:7.3.0
+    depends_on:
+      - zookeeper-sink
+    ports:
+      - "9093:9092"
+      - "29093:29092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper-sink:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-sink:9092,PLAINTEXT_HOST://localhost:29093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_DEFAULT_REPLICATION_FACTOR: 1
+    networks:
+      all-seeing:
+
+  schema-registry-sink:
+    image: confluentinc/cp-schema-registry:7.3.0
+    hostname: schema-registry-sink
+    container_name: schema-registry-sink
+    depends_on:
+      - kafka-sink
+    ports:
+      - "8082:8081"
+    environment:
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: PLAINTEXT://kafka-sink:9092
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry-sink
+    networks:
+      all-seeing:
+
+  kafka-connect-sink:
+    build:
+      dockerfile: KafkaConnect.Dockerfile
+      context: .
+    depends_on:
+      - kafka-sink
+    ports:
+      - "8084:8083"
+    environment:
+      CONNECT_BOOTSTRAP_SERVERS: kafka-sink:9092
+      CONNECT_REST_ADVERTISED_HOST_NAME: kafka-connect-sink
+      CONNECT_GROUP_ID: sink-connect-demo
+      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_CONFIG_STORAGE_TOPIC: sink.connect.configs
+      CONNECT_OFFSET_STORAGE_TOPIC: sink.connect.offsets
+      CONNECT_STATUS_STORAGE_TOPIC: sink.connect.status
+      CONNECT_KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_INTERNAL_KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_INTERNAL_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_REST_PORT: 8083
+      CONNECT_TOPIC_CREATION_ENABLE: true
+      CONNECT_AUTO_CREATE_TOPIC_ENABLE: true
+      CONNECT_KEY_CONVERTER_SCHEMA_REGISTRY_URL: http://schema-registry-sink:8081
+      CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: http://schema-registry-sink:8081
+    networks:
+      all-seeing:
+
+  ksqldb-server-sink:
+    image: confluentinc/cp-ksqldb-server:latest
+    depends_on:
+      - zookeeper-sink
+      - kafka-sink
+    ports:
+      - "8089:8088"
+    environment:
+      KSQL_BOOTSTRAP_SERVERS: http://kafka-sink:9092
+      KSQL_LISTENERS: http://0.0.0.0:8089
+      KSQL_KSQL_LOGGING_PROCESSING_STREAM_AUTO_CREATE: "true"
+      KSQL_KSQL_LOGGING_PROCESSING_TOPIC_AUTO_CREATE: "true"
+      KSQL_KSQL_SCHEMA_REGISTRY_URL: http://schema-registry-sink:8081
+    networks:
+      all-seeing:
+
+  # interfacing with stuff inside the system
+  ksqldb-cli:
+    image: confluentinc/cp-ksqldb-cli:latest
+    container_name: ksqldb-cli
+    entrypoint: /bin/sh
+    tty: true
     networks:
       all-seeing:
 
@@ -95,34 +210,10 @@ services:
       - "8080:8080"
     environment:
       DYNAMIC_CONFIG_ENABLED: "true"
-      KAFKA_CLUSTERS_0_NAME: Local Kafka
-      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
-    networks:
-      all-seeing:
-
-  ksqldb-server:
-    image: confluentinc/cp-ksqldb-server:latest
-    depends_on:
-      - zookeeper
-      - kafka
-    ports:
-      - "8088:8088"
-    environment:
-      KSQL_BOOTSTRAP_SERVERS: http://kafka:9092
-      KSQL_LISTENERS: http://0.0.0.0:8088
-      KSQL_KSQL_LOGGING_PROCESSING_STREAM_AUTO_CREATE: "true"
-      KSQL_KSQL_LOGGING_PROCESSING_TOPIC_AUTO_CREATE: "true"
-      KSQL_KSQL_SCHEMA_REGISTRY_URL: http://schema-registry:8081
-    networks:
-      all-seeing:
-
-  ksqldb-cli:
-    image: confluentinc/cp-ksqldb-cli:latest
-    container_name: ksqldb-cli
-    depends_on:
-      - ksqldb-server
-    entrypoint: /bin/sh
-    tty: true
+      KAFKA_CLUSTERS_0_NAME: Source Kafka
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka-src:9092
+      KAFKA_CLUSTERS_1_NAME: Sink Kafka
+      KAFKA_CLUSTERS_1_BOOTSTRAPSERVERS: kafka-sink:9092
     networks:
       all-seeing:
 
