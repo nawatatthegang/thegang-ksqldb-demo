@@ -1,5 +1,5 @@
 {
-  "name": "source-full-debezium",
+  "name": "source-flat-schema-debezium",
   "config": {
     "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
     "tasks.max": "1",
@@ -8,9 +8,9 @@
     "snapshot.mode": "initial",
     "include.schema.changes": "true",
     "key.converter": "org.apache.kafka.connect.json.JsonConverter",
-    "key.converter.schemas.enable": "false",
+    "key.converter.schemas.enable": "true",
     "value.converter": "org.apache.kafka.connect.json.JsonConverter",
-    "value.converter.schemas.enable": "false",
+    "value.converter.schemas.enable": "true",
     "topic.creation.enable": "true",
     "decimal.handling.mode": "double",
     "heartbeat.interval.ms": 300000,
@@ -23,10 +23,12 @@
     "database.password": "postgres",
     "database.dbname": "source_db",
     "database.history.kafka.bootstrap.servers": "http://kafka:9092",
-    "publication.name": "full_demo_publication",
-    "slot.name": "full_demo_slot",
-    "database.server.name": "girls-band-anime-db-full",
-    "topic.prefix": "demo.full.sourcepg",
-    "table.include.list": "public.characters,public.bands,public.concerts"
+    "publication.name": "flat_schema_demo_publication",
+    "slot.name": "flat_schema_demo_slot",
+    "database.server.name": "girls-band-anime-db-flat-scema",
+    "topic.prefix": "demo.flat.schema.sourcepg",
+    "table.include.list": "public.characters,public.bands,public.concerts",
+    "transforms": "unwrap",
+    "transforms.unwrap.type": "io.debezium.transforms.ExtractNewRecordState"
   }
 }

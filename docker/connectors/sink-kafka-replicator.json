@@ -2,7 +2,7 @@
   "name": "sink-kafka-replicator",
   "config": {
     "connector.class": "io.confluent.connect.replicator.ReplicatorSourceConnector",
-    "topic.whitelist": "out.tbl.characters,_schemas",
+    "topic.whitelist": "demo.flat.avro.sourcepg.public.characters,demo.flat.schema.sourcepg.public.characters,demo.flat.sourcepg.public.characters,_schemas",
     "key.converter": "io.confluent.connect.replicator.util.ByteArrayConverter",
     "value.converter": "io.confluent.connect.replicator.util.ByteArrayConverter",
     "src.kafka.bootstrap.servers": "kafka-src:9092",

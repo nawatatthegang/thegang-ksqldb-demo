@@ -32,9 +32,9 @@ elif [[ $1 == "status" ]]; then
   curl "http://localhost:8083/connectors/$2/status" 2>/dev/null | jq
 
 elif [[ $1 == "add" ]]; then
-  curl -X POST -H "Content-Type:application/json" -d "@$2" http://localhost:8083/connectors 2>/dev/null
+  curl -X POST -H "Content-Type:application/json" -d "@$2" http://localhost:8083/connectors 2>/dev/null | jq
 elif [[ $1 == "update" ]]; then
-  curl -X PUT -H "Content-Type:application/json" -d "$(jq '.config' $3)" "http://localhost:8083/connectors/$2/config" 2>/dev/null
+  curl -X PUT -H "Content-Type:application/json" -d "$(jq '.config' $3)" "http://localhost:8083/connectors/$2/config" 2>/dev/null | jq
 elif [[ $1 == "delete" ]]; then
   curl -X DELETE "http://localhost:8083/connectors/$2" 2>/dev/null
 

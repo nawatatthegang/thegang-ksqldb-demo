@@ -106,6 +106,7 @@ services:
       KSQL_KSQL_SCHEMA_REGISTRY_URL: http://schema-registry-src:8081
     networks:
       all-seeing:
+
   # sink services
   zookeeper-sink:
     image: confluentinc/cp-zookeeper:7.3.0
