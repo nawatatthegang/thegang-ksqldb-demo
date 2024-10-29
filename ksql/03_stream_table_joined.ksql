@@ -20,8 +20,6 @@ WITH (
     kafka_topic='demo.stream.concert_and_band_details_v2',
     key_format='json',
     value_format='json'
-    -- , timestamp='field_name'
-    -- , timestamp_format='yyyy-MM-dd HH:mm:ss'
 ) AS
 SELECT
     c.id as concert_id,

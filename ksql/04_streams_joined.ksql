@@ -1,0 +1,33 @@
+CREATE STREAM concert_and_live_reactions WITH (
+    kafka_topic='demo.stream.concert_and_live_reactions',
+    key_format='json',
+    value_format='json'
+) AS
+SELECT
+    c.id as concert_id,
+    c.name as concert_name,
+    l.impression
+FROM
+    concerts_repartitioned c
+    LEFT JOIN live_reactions_repartitioned l
+        WITHIN 3 seconds
+        GRACE PERIOD 3 second
+        ON c.id = l.concert_id
+EMIT CHANGES;
+
+CREATE STREAM concert_and_live_reactions_v2 WITH (
+    kafka_topic='demo.stream.concert_and_live_reactions_v2',
+    key_format='json',
+    value_format='json'
+) AS
+SELECT
+    c.id as concert_id,
+    c.name as concert_name,
+    l.impression
+FROM
+    concerts_repartitioned c
+    LEFT JOIN live_reactions_repartitioned l
+        WITHIN 20 seconds
+        GRACE PERIOD 15 second
+        ON c.id = l.concert_id
+EMIT CHANGES;

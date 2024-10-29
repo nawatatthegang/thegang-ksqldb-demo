@@ -23,7 +23,17 @@ CREATE TABLE concerts
   event_date       DATE,
   band_id          INTEGER,
   attended         BOOLEAN,
-  score_out_of_ten NUMERIC(2)
+  score_out_of_ten NUMERIC(2),
+  created_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE live_reactions
+(
+  id                SERIAL PRIMARY KEY,
+  impression        TEXT,
+  reaction_datetime TIMESTAMP,
+  concert_id        INTEGER,
+  social_platform   VARCHAR(50)
 );
 
 INSERT INTO bands (name, color, studio)

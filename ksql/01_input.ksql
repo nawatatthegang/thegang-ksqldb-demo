@@ -30,7 +30,8 @@ CREATE STREAM concerts_stream (
     event_date INTEGER,
     band_id INTEGER,
     attended BOOLEAN,
-    score_out_of_ten DOUBLE
+    score_out_of_ten DOUBLE,
+    created_at BIGINT
 ) with (
     kafka_topic='demo.flat.sourcepg.public.concerts',
     key_format='json',

@@ -1,0 +1,42 @@
+CREATE STREAM twitter_stream WITH (
+    kafka_topic='demo.stream.filtered.twitter',
+    key_format='json',
+    value_format='json'
+) AS
+SELECT
+    id,
+    impression
+FROM live_reactions_stream
+WHERE social_platform = 'Twitter' OR social_platform = 'X'
+EMIT CHANGES;
+
+CREATE STREAM bluesky_stream WITH (
+    kafka_topic='demo.stream.filtered.bluesky',
+    key_format='json',
+    value_format='json'
+) AS
+SELECT
+    id,
+    impression
+FROM live_reactions_stream
+WHERE social_platform = 'Bluesky'
+EMIT CHANGES;
+
+CREATE STREAM combined_reactions_stream (
+    id INTEGER,
+    impression STRING,
+    platform STRING
+) WITH (
+    kafka_topic='demo.stream.combined.reactions',
+    partitions=1,
+    key_format='json',
+    value_format='json'
+);
+
+INSERT INTO combined_reactions_stream
+SELECT id, impression, 'Twitter' as platform FROM twitter_stream
+EMIT CHANGES;
+
+INSERT INTO combined_reactions_stream
+SELECT id, impression, 'Bluesky' as platform FROM bluesky_stream
+EMIT CHANGES;

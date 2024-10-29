@@ -1,0 +1,49 @@
+SET 'auto.offset.reset' = 'earliest';
+
+CREATE STREAM concerts_repartitioned WITH (
+    kafka_topic='demo.stream.repartition.concerts',
+    key_format='json',
+    value_format='json',
+    timestamp='created_at',
+    timestamp_format='yyyy-MM-dd HH:mm:ss'
+) AS
+SELECT
+    id,
+    name,
+    event_date,
+    venue,
+    band_id,
+    attended,
+    score_out_of_ten,
+    timestamptostring(created_at / 1000, 'yyyy-MM-dd HH:mm:ss') as created_at
+FROM concerts_stream
+PARTITION BY id
+EMIT CHANGES;
+
+CREATE STREAM live_reactions_stream (
+    id INTEGER,
+    impression STRING,
+    reaction_datetime BIGINT,
+    concert_id INTEGER,
+    social_platform STRING
+) with (
+    kafka_topic='demo.flat.sourcepg.public.live_reactions',
+    key_format='json',
+    value_format='json'
+);
+
+CREATE STREAM live_reactions_repartitioned WITH (
+    kafka_topic='demo.stream.repartition.live_reactions',
+    key_format='json',
+    value_format='json',
+    timestamp='reaction_datetime',
+    timestamp_format='yyyy-MM-dd HH:mm:ss'
+) AS
+SELECT
+    concert_id,
+    impression,
+    timestamptostring(reaction_datetime / 1000, 'yyyy-MM-dd HH:mm:ss') as reaction_datetime,
+    social_platform
+FROM live_reactions_stream
+PARTITION BY concert_id
+EMIT CHANGES;
