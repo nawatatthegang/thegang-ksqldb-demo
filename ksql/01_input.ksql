@@ -1,29 +1,29 @@
 SET 'auto.offset.reset' = 'earliest';
 
-CREATE STREAM dev_flat_characters (
+CREATE STREAM characters_stream (
     id INTEGER,
     name STRING,
     band_id INTEGER,
     band_color STRING,
     instrument STRING
 ) with (
-    kafka_topic='dev.demo.flat.sourcepg.public.characters',
+    kafka_topic='demo.flat.sourcepg.public.characters',
     key_format='json',
     value_format='json'
 );
 
-CREATE STREAM dev_flat_bands (
+CREATE STREAM bands_stream (
     id INTEGER,
     name STRING,
     color STRING,
     studio STRING
 ) with (
-    kafka_topic='dev.demo.flat.sourcepg.public.bands',
+    kafka_topic='demo.flat.sourcepg.public.bands',
     key_format='json',
     value_format='json'
 );
 
-CREATE STREAM dev_flat_concerts (
+CREATE STREAM concerts_stream (
     id INTEGER,
     name STRING,
     venue STRING,
@@ -32,7 +32,7 @@ CREATE STREAM dev_flat_concerts (
     attended BOOLEAN,
     score_out_of_ten DOUBLE
 ) with (
-    kafka_topic='dev.demo.flat.sourcepg.public.concerts',
+    kafka_topic='demo.flat.sourcepg.public.concerts',
     key_format='json',
     value_format='json'
 );

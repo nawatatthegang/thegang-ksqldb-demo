@@ -1,0 +1,47 @@
+SET 'auto.offset.reset' = 'earliest';
+
+CREATE STREAM characters_stream_avro (
+    id INTEGER,
+    name STRING,
+    band_id INTEGER,
+    band_color STRING,
+    instrument STRING
+) with (
+    kafka_topic='demo.flat.avro.sourcepg.public.characters',
+    key_format='avro',
+    value_format='avro'
+);
+
+CREATE STREAM characters_stream_schema (
+    payload STRUCT<
+        id INTEGER,
+        name STRING,
+        band_id INTEGER,
+        band_color STRING,
+        instrument STRING
+    >,
+    schema STRUCT<
+        type STRING,
+        fields ARRAY<STRUCT<
+            type STRING,
+            optional BOOLEAN,
+            field STRING
+        >>
+    >
+) with (
+    kafka_topic='demo.flat.schema.sourcepg.public.characters',
+    key_format='json',
+    value_format='json'
+);
+
+CREATE TABLE characters_table (
+    id INTEGER PRIMARY KEY,
+    name STRING,
+    band_id INTEGER,
+    band_color STRING,
+    instrument STRING
+) with (
+    kafka_topic='demo.flat.sourcepg.public.characters',
+    key_format='json',
+    value_format='json'
+);

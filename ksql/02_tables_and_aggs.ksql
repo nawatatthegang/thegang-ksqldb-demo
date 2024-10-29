@@ -1,72 +1,48 @@
-CREATE TABLE dev_flat_characters_tbl
+CREATE TABLE characters_table 
 WITH (
-    kafka_topic='dev.demo.table.characters',
+    kafka_topic='demo.table.characters',
     key_format='json',
     value_format='json'
 ) AS
 SELECT
     id,
-    latest_by_offset(name) as name,
-    latest_by_offset(band_id) as band_id,
-    latest_by_offset(band_color) as band_color,
-    latest_by_offset(instrument) as instrument
-FROM dev_flat_characters
-GROUP BY id;
+    latest_by_offset(name) AS name,
+    latest_by_offset(band_id) AS band_id,
+    latest_by_offset(band_color) AS band_color,
+    latest_by_offset(instrument) AS instrument
+FROM characters_stream
+GROUP BY id
+EMIT CHANGES;
 
-CREATE TABLE out_enriched_characters
+CREATE TABLE bands_table 
 WITH (
-    kafka_topic='out.tbl.characters',
-    key_format='avro',
-    value_format='avro'
-) AS
-SELECT
-    id,
-    latest_by_offset(name) as name,
-    latest_by_offset(band_id) as band_id,
-    latest_by_offset(band_color) as band_color,
-    latest_by_offset(instrument) as instrument
-FROM dev_flat_characters
-GROUP BY id;
-
-CREATE TABLE dev_flat_characters_tbl_to_sink_v2
-WITH (
-    kafka_topic='dev.demo.table.characters.sink_v2',
+    kafka_topic='demo.table.bands',
     key_format='json',
     value_format='json'
 ) AS
 SELECT
     id,
-    struct(
-        `type` := 'struct'
-        , `optional` := false
-        , `version` := 1
-        , `fields` := array[
-            struct(
-                `field` := 'name'
-                , `type` := 'string'
-                , `optional` := true
-            ),
-            struct(
-                `field` := 'band_id'
-                , `type` := 'int64'
-                , `optional` := true
-            ),
-            struct(
-                `field` := 'band_color'
-                , `type` := 'string'
-                , `optional` := true
-            ),
-            struct(
-                `field` := 'instrument'
-                , `type` := 'string'
-                , `optional` := true
-            )]
-    ) as `schema`
-    , struct(
-        `name` := latest_by_offset(name)
-        , `band_id` := latest_by_offset(band_id)
-        , `band_color` := latest_by_offset(band_color)
-        , `instrument` := latest_by_offset(instrument)
-    ) as `payload`
-FROM dev_flat_characters
-GROUP BY id;
+    latest_by_offset(name) AS name,
+    latest_by_offset(color) AS color,
+    latest_by_offset(studio) AS studio
+FROM bands_stream
+GROUP BY id
+EMIT CHANGES;
+
+CREATE TABLE concerts_table 
+WITH (
+    kafka_topic='demo.table.concerts',
+    key_format='json',
+    value_format='json'
+) AS
+SELECT
+    id,
+    latest_by_offset(name) AS name,
+    latest_by_offset(venue) AS venue,
+    latest_by_offset(event_date) AS event_date,
+    latest_by_offset(band_id) AS band_id,
+    latest_by_offset(attended) AS attended,
+    latest_by_offset(score_out_of_ten) AS score_out_of_ten
+FROM concerts_stream
+GROUP BY id
+EMIT CHANGES;

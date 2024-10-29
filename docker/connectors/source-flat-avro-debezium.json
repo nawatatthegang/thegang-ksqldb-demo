@@ -27,7 +27,7 @@
     "slot.name": "flat_avro_demo_slot",
     "database.server.name": "girls-band-anime-db-flat-avro",
     "topic.prefix": "demo.flat.avro.sourcepg",
-    "table.include.list": "public.characters,public.bands,public.concerts",
+    "table.include.list": "public.characters",
     "transforms": "unwrap",
     "transforms.unwrap.type": "io.debezium.transforms.ExtractNewRecordState"
   }

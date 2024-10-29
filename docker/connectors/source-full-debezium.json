@@ -27,6 +27,6 @@
     "slot.name": "full_demo_slot",
     "database.server.name": "girls-band-anime-db-full",
     "topic.prefix": "demo.full.sourcepg",
-    "table.include.list": "public.characters,public.bands,public.concerts"
+    "table.include.list": "public.characters"
   }
 }

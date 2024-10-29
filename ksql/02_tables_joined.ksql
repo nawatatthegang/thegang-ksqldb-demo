@@ -1,0 +1,86 @@
+-- doesn't work
+CREATE TABLE band_and_members_table
+WITH (
+    kafka_topic='demo.table.band_color_and_members',
+    key_format='json',
+    value_format='json'
+) AS
+SELECT
+    bt.id as band_id,
+    bt.name as band_name,
+    collect_list(struct(
+        member_name := ct.name,
+        member_role := ct.instrument
+    )) AS members
+FROM bands_table bt
+    JOIN characters_table ct ON bt.id = ct.band_id  -- ct.band_id is not PK
+GROUP BY bt.id
+EMIT CHANGES;
+
+CREATE TABLE band_members_table
+WITH (
+    kafka_topic='demo.table.band_members',
+    key_format='json',
+    value_format='json'
+) AS
+SELECT
+    band_id as band_id,
+    collect_list(struct(
+        member_name := name,
+        member_role := instrument
+    )) AS members
+FROM characters_table
+GROUP BY band_id
+EMIT CHANGES;
+
+CREATE TABLE band_and_members_table
+WITH (
+    kafka_topic='demo.table.band_and_members',
+    key_format='json',
+    value_format='json'
+) AS
+SELECT
+    bt.id,
+    bt.name as band_name,
+    ct.members AS member
+FROM bands_table bt
+    LEFT JOIN band_members_table ct ON bt.id = ct.band_id
+EMIT CHANGES;
+
+CREATE TABLE band_and_members_table_v2
+WITH (
+    kafka_topic='demo.table.band_and_members_v2',
+    key_format='json',
+    value_format='json'
+) AS
+SELECT
+    ct.band_id as band_id,
+    bt.name as band_name,
+    collect_list(struct(
+        member_name := ct.name,
+        member_role := ct.instrument
+    )) AS members
+FROM characters_table ct
+    LEFT JOIN bands_table bt ON ct.band_id = bt.id
+GROUP BY ct.band_id, bt.name
+EMIT CHANGES;
+
+CREATE TABLE band_and_members_table_v3
+WITH (
+    kafka_topic='demo.table.band_and_members_v3',
+    key_format='json',
+    value_format='json'
+) AS
+SELECT
+    ct.band_id AS bid,
+    bt.name,
+    as_value(ct.band_id) AS `band_id`,
+    as_value(bt.name) AS `band_name`,
+    collect_list(struct(
+        `member_name` := ct.name,
+        `member_role` := ct.instrument
+    )) AS `members`
+FROM characters_table ct
+    LEFT JOIN bands_table bt ON ct.band_id = bt.id
+GROUP BY ct.band_id, bt.name
+EMIT CHANGES;
