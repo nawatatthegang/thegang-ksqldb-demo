@@ -1,0 +1,35 @@
+CREATE STREAM concert_and_band_details
+WITH (
+    kafka_topic='demo.stream.concert_and_band_details',
+    key_format='json',
+    value_format='json'
+) AS
+SELECT
+    c.id as concert_id,
+    c.name as concert_name,
+    b.band_name as band_name,
+    b.member as band_members,
+    b.id as band_id  -- join key must be selected
+FROM concerts_stream c
+    LEFT JOIN band_and_members_table b ON c.band_id = b.id
+EMIT CHANGES;
+
+-- doesn't work
+CREATE STREAM concert_and_band_details_v2
+WITH (
+    kafka_topic='demo.stream.concert_and_band_details_v2',
+    key_format='json',
+    value_format='json'
+    -- , timestamp='field_name'
+    -- , timestamp_format='yyyy-MM-dd HH:mm:ss'
+) AS
+SELECT
+    c.id as concert_id,
+    b.`band_id` as band_id,
+    c.name as concert_name,
+    b.`band_name` as band_name,
+    b.`members` as band_members
+FROM concerts_stream c
+    LEFT JOIN band_and_members_table_v3 b
+        ON c.band_id = b.bid -- needs b.name as well
+EMIT CHANGES;
