@@ -7,7 +7,7 @@
     "connection.url": "jdbc:postgresql://database:5432/sink_db",
     "connection.user": "postgres",
     "connection.password": "postgres",
-    "table.name.format": "characters",
+    "table.name.format": "characters_schema",
     "insert.mode": "upsert",
     "pk.mode": "record_key",
     "pk.fields": "id",
