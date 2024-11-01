@@ -1,81 +1,74 @@
 # ksqlDB Demo for KS Session
 
-You are a proud concert-going blogger and want to show which (anime-based) concerts you have attended on your personal
-blog along with a few other details. So, you are tracking the following data:
+## Overview
 
-- Characters
-    - Name that the character is most known by `name`
-    - Band they're in `band_id`
-    - Band color `band_color`
-    - Instrument they play `instrument`
-- Bands
-    - Band name `name`
-    - Band color `color`
-    - Studio that they use to practice `studio`
-- Concerts
-    - Concert name `name`
-    - Venue `venue`
-    - Date of the concert `event_date`
-    - Band performing `band_id`
-    - Flag for if you've attended or not `attended`
-    - Score out of 10 `score_out_of_ten`
-- Songs played
-    - Concert `concert_id`
-    - Song name `name`
-- Live reaction to songs
-    - Impression `impression`
-    - Tweet timestamp `reaction_datetime`
-    - Concert `concert_id`
-    - Song `song_id`
+This demo includes 2 main parts:
 
-## Table-Table Join
+1. Deploying Kafka Connect and configuring its connectors, including
+    1. Debezium for ingesting data from Postgres into Kafka
+    2. Kafka Replicator for ingesting data from one Kafka cluster to another
+    3. JDBC Sink for ingesting data from Kafka into Postgres
+2. Running ksqlDB to transform data in Kafka, focusing on
+    1. Creating streams and tables
+    2. Performing table-table joins
+    3. Performing stream-table joins
+    4. Performing stream-stream joins
 
-We want to show details about our favorite bands and their members.
+Before running the demo, deploy the services required by running the following command in the `/docker` directory
 
-```json
-{
-  "band_name": "string",
-  "members": [
-    {
-      "member_name": "string",
-      "member_role": "string"
-    }
-  ]
-}
+```shell
+docker compose up -d
 ```
 
-## Stream-Table Join
+## Kafka Connect
 
-We want to show details about the concerts that we've been to along with the songs that have been played.
+### Debezium
 
-```json
-{
-  "concert_name": "string",
-  "venue": "string",
-  "event_date": "string",
-  "band_name": "string",
-  "score": 10.0,
-  "performers": [
-    {
-      "character_name": "string",
-      "instrument": "string"
-    }
-  ],
-  "songs": [
-    "song_name"
-  ]
-}
+The connector config can be found in `docker/connectors/source-*-debezium.json`. The differences between each config is:
+
+- `source-flat-avro-debezium.json` ingests the data into Kafka as Avro format
+- `source-flat-schema-debezium.json` ingests the data into Kafka as JSON format with schema
+- `source-flat-debezium.json` ingests the data into Kafka as JSON format without schema
+- `source-full-debezium.json` ingests the data into Kafka as JSON format without schema and includes what a row looks
+  like before the update to that row
+
+Each connector can be added by running the following command in the `/docker` directory
+
+```shell
+./src-utils.sh add connectors/source-...-debezium.json
 ```
 
-## Stream-Stream Join
+## Kafka Replicator
 
-We want to show our live reactions to each song.
+The connector config can be found in `docker/connectors/sink-kafka-replicator.json` and can be added by running the
+following command in the `/docker` directory
 
-```json
-{
-  "song_name": "string",
-  "impression": [
-    "string"
-  ]
-}
+```shell
+./sink-utils.sh add connectors/sink-kafka-replicator.json
 ```
+
+## JDBC Sink
+
+The connector config can be found in `docker/connectors/sink-jdbc-*.json`. Each config reads different topics created by
+Debezium into Postgres. Do keep in mind that the flat connector will not work.
+
+## ksqlDB
+
+There are 2 ksqlDB servers created, one for source and one for sink. Each can be accessed by running the following
+script.
+
+```shell
+./run-ksql.sh src # for source
+./run-ksql.sh sink # for sink
+```
+
+The scripts can be found in the `/ksql` directory. Make sure to run the SQL scripts with the same number prefix in the
+`/data_generator` directory before running each ksql script.
+
+### Prefixes
+
+- `01_*` are for creating the source streams from Debezium
+- `02_*` are for creating tables and doing table-table joins
+- `03_*` are for doing stream-table joins
+- `04_*` are for repartitioning and doing stream-stream joins
+- `05_*` are for merging multiple streams into one
